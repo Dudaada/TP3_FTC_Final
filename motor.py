@@ -7,7 +7,7 @@ def criar_mapa_transicoes(afd):
         if origem not in mapa:
             mapa[origem] = {}
         mapa[origem][simbolo] = destino
-      return mapa
+    return mapa
 
 
 def processar_palavra(afd, mapa_transicoes, palavra):
