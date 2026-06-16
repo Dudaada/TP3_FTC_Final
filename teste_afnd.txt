@@ -1,0 +1,12 @@
+Q: q0 q1 q2
+S: a b
+I: q0
+F: q2
+q0 -> q0 | a b
+q0 -> q1 | \
+q1 -> q2 | a
+---
+a
+b
+ba
+bb
