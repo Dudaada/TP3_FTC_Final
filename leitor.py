@@ -206,6 +206,6 @@ def ler_configuracao_afd(caminho_arquivo):
                     })
 
     # Coleta todas as palavras teste que existem abaixo da linha delimitadora "---"
-    linhas_de_teste = [linha.replace("\n", "") for list_linha in iterador_linhas if (linha := list_linha)]
+    linhas_de_teste = [linha.replace("\n", "").replace("\r", "") for linha in iterador_linhas]
     
     return afd, linhas_de_teste # Retorna o autômato criado em memória e a lista de palavras para testar

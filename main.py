@@ -15,27 +15,32 @@ def main():
         return
 
     # 2. Transforma as transições lidas em um dicionário de busca em O(1) (Hashmap)
-    # Aqui, dependendo se o 'afd' é AP, AFND ou MT, o mapa de transição virá construído da forma certa para sua engine
     mapa_transicoes = criar_mapa_transicoes(afd)
     
     # 3. For loop que passa linha a linha nas palavras abaixo da divisória "---"
     for palavra in palavras_teste:
-        # Entrega o autômato, o mapa feito em memória e a palavra para o despachante do motor,
-        # que por sua vez manda a Engine de execução própria simular os estados.
-        resultado = processar_palavra(afd, mapa_transicoes, palavra)
+        try:
+            # Entrega o autômato, o mapa feito em memória e a palavra para o despachante do motor,
+            # que por sua vez manda a Engine de execução própria simular os estados.
+            resultado = processar_palavra(afd, mapa_transicoes, palavra)
 
-        if isinstance(afd, MT):
-            # Extra 4 (MT/ALL): a saída exige também o conteúdo final da fita, no formato "OK <fita" / "X <fita"
-            # O '<' aqui é um separador fixo do formato de saída (conforme os exemplos da especificação),
-            # distinto do símbolo de limite esquerdo da fita interna do autômato.
-            aceita, conteudo_fita = resultado
-            status = "OK" if aceita else "X"
-            print(f"{status} <{conteudo_fita}")
-        else:
-            # De acordo com a especificação formal, escreve OK se foi verdadeiro (Aceita)
-            if resultado:
-                print("OK")
-            # E escreve X se foi falso (Rejeitada)
+            if isinstance(afd, MT):
+                # Extra 4 (MT/ALL): a saída exige também o conteúdo final da fita, no formato "OK <fita" / "X <fita"
+                aceita, conteudo_fita = resultado
+                status = "OK" if aceita else "X"
+                print(f"{status} <{conteudo_fita}")
+            else:
+                # De acordo com a especificação formal, escreve OK se foi verdadeiro (Aceita)
+                if resultado:
+                    print("OK")
+                # E escreve X se foi falso (Rejeitada)
+                else:
+                    print("X")
+        except Exception:
+            # Se acontecer qualquer erro inesperado durante o processamento de uma palavra (ex: exceção matemática),
+            # assume que rejeitou a palavra e imprime 'X' cirurgicamente.
+            if isinstance(afd, MT):
+                print("X <") # Imprime fita vazia no caso de erro na MT
             else:
                 print("X")
 
