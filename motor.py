@@ -214,11 +214,141 @@ class MotorAP:
             return False
 
 
+class MotorMT:
+    # Motor para Máquina de Turing / Autômato Linearmente Limitado (ALL).
+    # A fita é representada como um dicionário esparso {posição: símbolo}, o que permite simular uma fita
+    # "suficientemente grande" (na prática, ilimitada) sem alocar memória para posições nunca visitadas.
+    SIMBOLO_BRANCO = '_' # Símbolo de espaço em branco da fita, conforme a especificação
+    LIMITE_ESQUERDO = '<' # Marcador de início da fita (delimitador esquerdo do ALL)
+    LIMITE_DIREITO = '>' # Marcador de fim da fita (delimitador direito do ALL)
+
+    def criar_mapa_transicoes(self, afd):
+        # δ(estado, símbolo_lido) = (destino, símbolo_escrito, direção)
+        # Não há não-determinismo de movimento esperado pela especificação da MT, mas guardamos como lista
+        # para sermos tolerantes a entradas com mais de uma regra para o mesmo par (estado, símbolo) e seguir
+        # o mesmo padrão defensivo usado pelos motores de AFND/AP já existentes.
+        mapa = {}
+        for transicao in afd.transicoes:
+            origem = transicao["origem"]
+            simbolo = transicao["simbolo"]
+            if origem not in mapa:
+                mapa[origem] = {}
+            if simbolo not in mapa[origem]:
+                mapa[origem][simbolo] = []
+            mapa[origem][simbolo].append({
+                "destino": transicao["destino"],
+                "escreve": transicao["escreve"],
+                "direcao": transicao["direcao"]
+            })
+        return mapa
+
+    TAMANHO_MAXIMO_FITA = 10**9 # "Número suficientemente grande de espaços para a fita", usado como teto de segurança do ALL
+
+    def _usa_limitadores(self, afd):
+        # Detecta se o autômato realmente depende dos limitadores físicos da fita (modo ALL), verificando se
+        # alguma transição lê o símbolo '<' ou '>' explicitamente. Se nenhuma transição os usa, tratamos a
+        # fita como "teoricamente infinita" (modo MT clássica), sem inserir um '>' físico logo após a palavra
+        # — isso é o que permite reconciliar os dois estilos de máquina mostrados na especificação usando um
+        # único motor, detectando automaticamente pelo formato das transições do autômato.
+        return any(t["simbolo"] in (self.LIMITE_ESQUERDO, self.LIMITE_DIREITO) for t in afd.transicoes)
+
+    def _montar_fita_inicial(self, palavra, usa_limitadores):
+        # Monta a fita esparsa inicial: '<' sempre na posição 0 (nunca atrapalha, pois a cabeça começa na
+        # posição 1 e só chegaria lá testando-o de propósito). O '>' só é inserido fisicamente logo após o
+        # último símbolo da palavra quando o autômato realmente usa limitadores (modo ALL) — caso contrário,
+        # a fita segue infinita/em branco para a direita (modo MT clássica), conforme a especificação.
+        fita = {0: self.LIMITE_ESQUERDO}
+        pos = 1
+        for simbolo in palavra:
+            fita[pos] = simbolo
+            pos += 1
+        if usa_limitadores:
+            fita[pos] = self.LIMITE_DIREITO
+        return fita
+
+    def _ler(self, fita, posicao):
+        # Lê o símbolo na posição da fita; se nunca foi escrito, é branco por padrão
+        return fita.get(posicao, self.SIMBOLO_BRANCO)
+
+    def _fita_para_string(self, fita, pos_min_visitada, pos_max_visitada):
+        # Converte a fita esparsa numa string, considerando o intervalo [pos_min_visitada, pos_max_visitada]
+        # que a cabeça de leitura realmente percorreu durante a execução, cortando o final em branco.
+        # Isso reproduz o pedido da especificação: "imprima apenas até o último espaço não vazio da fita".
+        # A posição 0 (símbolo '<') nunca é incluída aqui: mesmo que a cabeça tenha legitimamente parado ali,
+        # esse símbolo já é representado de forma fixa no formato de saída "STATUS <fita" (ver main.py).
+        inicio = max(pos_min_visitada, 1)
+        ultima_pos_relevante = None
+        for p in range(inicio, pos_max_visitada + 1):
+            if self._ler(fita, p) != self.SIMBOLO_BRANCO:
+                ultima_pos_relevante = p
+        if ultima_pos_relevante is None:
+            return "" # Todo o intervalo percorrido está em branco: a fita impressa fica vazia
+        return "".join(self._ler(fita, p) for p in range(inicio, ultima_pos_relevante + 1))
+
+    def processar_palavra(self, afd, mapa_transicoes, palavra):
+        # Limpa eventuais sobras de \r (arquivos salvos em formato Windows) para não virar símbolo de fita inválido
+        palavra = palavra.replace('\r', '')
+        
+        start_time = time.time()
+        estado_atual = afd.estados_iniciais[0] if afd.estados_iniciais else ""
+        usa_limitadores = self._usa_limitadores(afd) # Decide se é modo ALL (fita limitada) ou MT clássica (fita infinita)
+        fita = self._montar_fita_inicial(palavra, usa_limitadores)
+        cabeca = 1 # A cabeça de leitura começa logo após o '<' (posição 0), mesmo em palavra vazia
+        # O limite absoluto da fita à esquerda é a posição 0 (onde está o '<'): a cabeça pode legitimamente
+        # parar ali (lendo/escrevendo o próprio '<'), mas não pode ir além dele. Tentar ultrapassar a posição 0
+        # é tratado como extrapolação da fita (rejeição), conforme a especificação.
+        posicao_limite_esquerdo = 0
+        # Rastreia o menor e maior índice que a cabeça efetivamente visitou, usado só para saber até onde
+        # imprimir a fita ao final (ver _fita_para_string). Não afeta a lógica de aceitação/rejeição.
+        pos_min_visitada = 1
+        pos_max_visitada = cabeca
+
+        while True:
+            if time.time() - start_time > TEMPO_LIMITE_SEGUNDOS:
+                # Estourou o tempo limite: rejeita (possível loop infinito, ex.: lambdas que nunca avançam a fita)
+                return False, self._fita_para_string(fita, pos_min_visitada, pos_max_visitada)
+
+            if estado_atual in afd.estados_finais:
+                # Critério de aceitação: a máquina PAROU em um estado final (não precisa ter consumido toda a fita,
+                # já que a MT pode aceitar assim que entra num estado de aceitação, conforme o enunciado)
+                return True, self._fita_para_string(fita, pos_min_visitada, pos_max_visitada)
+
+            simbolo_lido = self._ler(fita, cabeca)
+
+            if estado_atual not in mapa_transicoes or simbolo_lido not in mapa_transicoes[estado_atual]:
+                # Não há transição definida para esse (estado, símbolo): a máquina trava aqui e rejeita
+                return False, self._fita_para_string(fita, pos_min_visitada, pos_max_visitada)
+
+            transicao = mapa_transicoes[estado_atual][simbolo_lido][0] # Pega a primeira regra aplicável (determinístico)
+            
+            fita[cabeca] = transicao["escreve"] # Escreve o novo símbolo na posição atual da cabeça
+            
+            if transicao["direcao"] == 'D':
+                cabeca += 1
+            elif transicao["direcao"] == 'E':
+                cabeca -= 1
+            # Qualquer outro valor de direção é ignorado defensivamente (não deveria ocorrer com entrada válida)
+
+            if cabeca < posicao_limite_esquerdo or cabeca > self.TAMANHO_MAXIMO_FITA:
+                # A cabeça tentou se mover para antes do início absoluto da fita, ou além do teto de segurança
+                # (fita "suficientemente grande"): segundo a especificação, "caso a máquina extrapole a fita,
+                # considere que a palavra não foi reconhecida". O símbolo '>' colocado logo após a palavra é
+                # apenas uma sentinela natural — pode ser lido/ultrapassado livremente para a direita, a menos
+                # que o próprio autômato defina uma transição que dependa dele (como no exemplo do ALL).
+                return False, self._fita_para_string(fita, pos_min_visitada, pos_max_visitada)
+
+            pos_min_visitada = min(pos_min_visitada, cabeca) # Atualiza os extremos visitados
+            pos_max_visitada = max(pos_max_visitada, cabeca)
+            estado_atual = transicao["destino"] # Avança para o novo estado
+
+
 # Funções "Fábrica"/Despachantes (Strategy Pattern)
 def get_motor(afd):
     # Verifica a instância em runtime e pega a classe do motor de lógica ideal
-    from leitor import AP, AFND
-    if isinstance(afd, AP):
+    from leitor import AP, AFND, MT
+    if isinstance(afd, MT):
+        return MotorMT()
+    elif isinstance(afd, AP):
         return MotorAP()
     elif isinstance(afd, AFND):
         return MotorAFND()
@@ -234,3 +364,4 @@ def processar_palavra(afd, mapa_transicoes, palavra):
     # Delega o processamento pro motor correspondente (Polimorfismo)
     motor = get_motor(afd)
     return motor.processar_palavra(afd, mapa_transicoes, palavra)
+
