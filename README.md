@@ -2,13 +2,27 @@
 
 Simulador de autômatos a partir de um arquivo de configuração em texto. Suporta Autômato Finito Determinístico (AFD), Autômato Finito Não Determinístico (AFND), Autômato de Pilha (AP) e Máquina de Turing / Autômato Linearmente Limitado (MT/ALL).
 
-## Como rodar
+## Como rodar o Modo Texto (CLI)
 
-```
+```bash
 python main.py [caminho_do_arquivo]
 ```
 
 Se nenhum caminho for passado, usa `entrada.txt` por padrão.
+
+## Como rodar a Interface Gráfica (Web)
+
+O projeto inclui uma interface interativa (tema CyberSec) para apresentação e testes rápidos.
+
+1. Instale o framework Flask (caso ainda não tenha):
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Inicie o servidor local:
+   ```bash
+   python app.py
+   ```
+3. Abra o navegador e acesse a URL indicada no terminal (geralmente `http://localhost:5000`).
 
 ## Extras implementados
 

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSec | Motor de Descriptografia e Firewall</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="scanlines"></div>
+    <div class="glow-bg"></div>
+    <div class="container">
+        <header>
+            <h1><span class="neon-text">SYS_SEC</span><span class="blinking-cursor">_</span> // Terminal de Validação
+            </h1>
+            <p>Analisador de protocolos usando autômatos formais (AFD/AFND/AP/MT)</p>
+        </header>
+
+        <main>
+            <div class="panel config-panel">
+                <div class="panel-header">
+                    <h2>Módulo Criptográfico (Autômato)</h2>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="fileSelector" class="cyber-select">
+                            <option value="">- Carregar Arquivo Padrão -</option>
+                        </select>
+                        <span class="badge">[ CONFIG ]</span>
+                    </div>
+                </div>
+                <p class="subtitle">Defina as regras estruturais da máquina de segurança. Símbolos, estados e
+                    transições.</p>
+                <textarea id="automatoInput" spellcheck="false" placeholder="Ex:\nQ: a b\nI: a\nF: b\na -> b | 0">
+Q: a b c d e
+I: a
+F: a d
+a -> b | 1
+a -> d | 0
+b -> c | 0
+b -> e | 1
+c -> c | 0
+c -> d | 1
+d -> d | 0 1
+e -> e | 0 1</textarea>
+            </div>
+
+            <div class="panel test-panel">
+                <div class="panel-header">
+                    <h2>02. Tokens de Acesso (Palavras)</h2>
+                    <span class="badge">[ PAYLOADS ]</span>
+                </div>
+                <p class="subtitle">Insira as sequências para verificação pelo motor.</p>
+                <textarea id="testesInput" spellcheck="false" placeholder="Digite cada token em uma linha">
+001
+1000
+
+10000011
+111
+1</textarea>
+            </div>
+
+            <div class="action-bar">
+                <button id="runBtn" class="cyber-btn glitch-btn">
+                    <span class="btn-text">INICIAR VALIDAÇÃO [ENTRADA/SAÍDA]</span>
+                </button>
+            </div>
+
+            <div class="panel results-panel" id="resultsPanel" style="display: none;">
+                <div class="panel-header">
+                    <h2>03. Log de Execução</h2>
+                </div>
+
+                <div id="terminalScreen" class="fake-terminal" style="display: none;">
+                    <div class="terminal-header">sys_sec.exe --verbose</div>
+                    <div id="terminalOutput" class="terminal-body"></div>
+                </div>
+
+                <div id="resultsContent" class="results-grid" style="display: none;">
+                    <!-- Cards de resultado aparecerão aqui via JS -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
