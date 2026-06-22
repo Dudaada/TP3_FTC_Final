@@ -33,28 +33,32 @@ body {
     width: 8px;
     height: 8px;
 }
+
 ::-webkit-scrollbar-track {
-    background: var(--bg-color); 
+    background: var(--bg-color);
 }
+
 ::-webkit-scrollbar-thumb {
-    background: rgba(88, 166, 255, 0.3); 
+    background: rgba(88, 166, 255, 0.3);
     border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(88, 166, 255, 0.6); 
+    background: rgba(88, 166, 255, 0.6);
 }
 
 /* CRT Scanlines sutil */
 .scanlines {
     position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    background: linear-gradient(
-        to bottom,
-        rgba(255,255,255,0),
-        rgba(255,255,255,0) 50%,
-        rgba(0,0,0,0.1) 50%,
-        rgba(0,0,0,0.1)
-    );
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0) 50%,
+            rgba(0, 0, 0, 0.1) 50%,
+            rgba(0, 0, 0, 0.1));
     background-size: 100% 4px;
     pointer-events: none;
     z-index: 9999;
@@ -106,8 +110,15 @@ h1 {
 }
 
 @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
 }
 
 header p {
@@ -115,7 +126,7 @@ header p {
     font-size: 1.1rem;
 }
 
-/* Paineis Glassmorphism */
+/* Painéis */
 main {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -131,6 +142,7 @@ main {
     -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    align-items: center;
 }
 
 .panel:hover {
@@ -140,9 +152,11 @@ main {
 
 .panel-header {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.5rem;
+    gap: 10px;
 }
 
 .panel h2 {
@@ -159,6 +173,15 @@ main {
     font-family: var(--font-mono);
     font-size: 0.8rem;
     border: 1px solid rgba(185, 103, 255, 0.5);
+    white-space: nowrap;
+}
+
+.panel-subheader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.5rem;
+    min-height: 1.9rem;
 }
 
 .subtitle {
@@ -220,7 +243,10 @@ textarea::placeholder {
 .cyber-btn::before {
     content: '';
     position: absolute;
-    top: 0; left: -100%; width: 100%; height: 100%;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
     background: linear-gradient(90deg, transparent, rgba(88, 166, 255, 0.2), transparent);
     transition: left 0.5s ease;
 }
@@ -262,12 +288,29 @@ textarea::placeholder {
 }
 
 @keyframes glitch-anim {
-    0% { transform: translate(0) }
-    20% { transform: translate(-1px, 1px) }
-    40% { transform: translate(-1px, -1px) }
-    60% { transform: translate(1px, 1px) }
-    80% { transform: translate(1px, -1px) }
-    100% { transform: translate(0) }
+    0% {
+        transform: translate(0)
+    }
+
+    20% {
+        transform: translate(-1px, 1px)
+    }
+
+    40% {
+        transform: translate(-1px, -1px)
+    }
+
+    60% {
+        transform: translate(1px, 1px)
+    }
+
+    80% {
+        transform: translate(1px, -1px)
+    }
+
+    100% {
+        transform: translate(0)
+    }
 }
 
 .cyber-btn:active {
@@ -277,7 +320,8 @@ textarea::placeholder {
 /* Painel de Resultados */
 .results-panel {
     grid-column: 1 / -1;
-    display: none; /* Ativado via JS */
+    display: none;
+    /* Ativado via JS */
 }
 
 .results-grid {
@@ -397,8 +441,15 @@ textarea::placeholder {
 }
 
 @keyframes fadeInLog {
-    from { opacity: 0; transform: translateX(-5px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 @media (max-width: 768px) {

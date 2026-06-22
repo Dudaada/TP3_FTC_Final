@@ -24,15 +24,14 @@
             <div class="panel config-panel">
                 <div class="panel-header">
                     <h2>Módulo Criptográfico (Autômato)</h2>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <select id="fileSelector" class="cyber-select">
-                            <option value="">- Carregar Arquivo Padrão -</option>
-                        </select>
-                        <span class="badge">[ CONFIG ]</span>
-                    </div>
+                    <span class="badge">[ CONFIG ]</span>
                 </div>
-                <p class="subtitle">Defina as regras estruturais da máquina de segurança. Símbolos, estados e
-                    transições.</p>
+                <div class="panel-subheader">
+                    <select id="fileSelector" class="cyber-select">
+                        <option value="">- Carregar Arquivo Padrão -</option>
+                    </select>
+                </div>
+                <p class="subtitle">Estados, símbolos, transições e configuração da máquina.</p>
                 <textarea id="automatoInput" spellcheck="false" placeholder="Ex:\nQ: a b\nI: a\nF: b\na -> b | 0">
 Q: a b c d e
 I: a
@@ -52,6 +51,7 @@ e -> e | 0 1</textarea>
                     <h2>02. Tokens de Acesso (Palavras)</h2>
                     <span class="badge">[ PAYLOADS ]</span>
                 </div>
+                <div class="panel-subheader"></div>
                 <p class="subtitle">Insira as sequências para verificação pelo motor.</p>
                 <textarea id="testesInput" spellcheck="false" placeholder="Digite cada token em uma linha">
 001
